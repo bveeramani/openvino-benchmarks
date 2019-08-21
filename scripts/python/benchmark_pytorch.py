@@ -37,7 +37,7 @@ def main():
     print_results("VGG-16", latency, throughput)
 
 
-def benchmark_sync(model, num_trials=3):
+def benchmark_sync(model, num_trials=100):
     """Measures model performance using synchronous execution.
 
     Arguments:
