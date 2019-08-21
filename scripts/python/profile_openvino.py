@@ -6,7 +6,7 @@
 
 All operation counts are calculated with respect to a batch size of one.
 
-usage: profile.py [-h] -m MODEL [-f FILENAME]
+usage: profile_openvino.py [-h] -m MODEL [-f FILENAME]
 
 Profile Intermediate Representation models.
 
