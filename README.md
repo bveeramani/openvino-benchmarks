@@ -84,3 +84,48 @@ Pre-converted models can be downloaded from [here](https://drive.google.com/driv
 | YOLOV3-Tiny  | https://github.com/mystic123/tensorflow-yolo-v3                               |
 
 **AlexNet is included as a reference model in the `models/` directory.*
+
+Additionally, you can download pre-converted **partial** models from [here](https://drive.google.com/drive/folders/1X7xzMMWTxvVHcnbPB1UisB-ef2k-tJQV?usp=sharing).
+
+| Name                              | Output Layer Name       |
+|-----------------------------------|-------------------------|
+| AlexNet-conv1                     | conv1                   |
+| AlexNet-conv2                     | conv2                   |
+| ALexNet-conv3                     | conv3                   |
+| AlexNet-conv4                     | conv4                   |
+| AlexNet-conv5                     | conv5                   |
+| AlexNet-fc6                       | fc6                     |
+| AlexNet-fc7                       | fc7                     |
+| AlexNet-fc8                       | fc8                     |
+| GoogleNet-inception_3b_3x3_reduce | inception_3b/3x3_reduce |
+| GoogleNet-inception_4b_3x3_reduce | inception_4b/3x3_reduce |
+| GoogleNet-inception_4c_5x5        | inception_4c/5x5        |
+| GoogleNet-inception_4e_5x5_reduce | inception_4e/5x5_reduce |
+| GoogleNet-inception_5b_pool_proj  | inception_5b/pool_proj  |
+| GoogleNet-loss3_classifier        | loss3/classifier        |
+| VGG-16-conv2_1                    | conv2_1                 |
+| VGG-16-conv3_1                    | conv3_1                 |
+| VGG-16-conv4_1                    | conv4_1                 |
+| VGG-16-conv4_3                    | conv4_3                 |
+| VGG-16-conv5_3                    | conv5_3                 |
+| VGG-16-fc6                        | fc6                     |
+| VGG-16-fc7                        | fc7                     |
+| VGG-16-fc8                        | fc8                     |
+
+## Demo Output
+```
+C:\Users\Balaji\Documents\GitHub\openvino-benchmarks>python scripts/python/benchmark.py --device MYRIAD --model models/fp16/AlexNet.xml
+[Step 1/6] Configuring plugin for async execution on Windows.
+[Step 2/6] Reading Intermediate Representation of AlexNet.
+[Step 3/6] Setting network batch size to 32.
+[Step 4/6] Loading network to plugin with 2 requests.
+[Step 5/6] Measuring performance for 10 seconds.
+[Step 6/6] Dumping statistics report.
+
+Name:                   AlexNet
+Batch size:             32
+Inference requests:     2
+Throughput (f/s):       16.0213
+API:                    async
+Device:                 MYRIAD
+```
