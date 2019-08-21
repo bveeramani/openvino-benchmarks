@@ -2,7 +2,7 @@
 #
 # This work is licensed under the terms of the MIT license.
 # For a copy, see <https://opensource.org/licenses/MIT>.
-"""Tests for benchmark.py"""
+"""Tests for benchmark_openvino.py"""
 import os
 import random
 import string
@@ -10,7 +10,7 @@ import unittest
 
 from openvino.inference_engine import IENetwork, IEPlugin
 
-from benchmark import *
+from benchmark_openvino import *
 
 ROOT_DIR = os.path.dirname(
     os.path.dirname(os.path.dirname(os.path.abspath(__file__))))

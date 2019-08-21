@@ -2,13 +2,13 @@
 #
 # This work is licensed under the terms of the MIT license.
 # For a copy, see <https://opensource.org/licenses/MIT>.
-"""Tests for profile.py"""
+"""Tests for profile_openvino.py"""
 import os
 import random
 import string
 import unittest
 
-from profile import *
+from profile_openvino import *
 
 ROOT_DIR = os.path.dirname(
     os.path.dirname(os.path.dirname(os.path.abspath(__file__))))

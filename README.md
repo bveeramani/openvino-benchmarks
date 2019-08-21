@@ -45,7 +45,7 @@ optional arguments:
                         written to.
 ```
 
-## Batch Files
+## Experiments
 
 #### Windows
 ```
