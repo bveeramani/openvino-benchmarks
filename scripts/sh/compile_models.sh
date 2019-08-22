@@ -1,9 +1,13 @@
 #!/bin/bash
+PROJECT_DIR=$(dirname "$0")/../..
+PRECISION=$1
+
 TEMP_DIR=/tmp/models
 INSTALL_DIR=/opt/intel/openvino
-PROJECT_DIR=$(dirname "$0")/../..
+MODEL_DIR=$PROJECT_DIR/models/$("$PRECISION" | tr '[:upper:]' '[:lower:]')
 
 mkdir -p $TEMP_DIR
+mkdir -p $MODEL_DIR
 
 caffe()
 {
@@ -21,14 +25,14 @@ caffe()
         curl -o $TEMP_DIR/$MODEL_NAME.prototxt $PROTOTXT_URL
     fi
 
-    if [ ! -f "$PROJECT_DIR/models/fp32/$MODEL_NAME.xml" ];
+    if [ ! -f "$MODEL_DIR/$MODEL_NAME.xml" ];
     then
         python3 $INSTALL_DIR/deployment_tools/model_optimizer/mo.py \
             --input_model $TEMP_DIR/$MODEL_NAME.caffemodel \
             --input_proto $TEMP_DIR/$MODEL_NAME.prototxt \
-            --output_dir $PROJECT_DIR/models/fp32 \
+            --output_dir $MODEL_DIR \
             --model_name $MODEL_NAME \
-            --data_type FP32
+            --data_type $PRECISION
     fi
 }
 
@@ -42,13 +46,13 @@ onnx()
         curl -o $TEMP_DIR/$MODEL_NAME.onnx $ONNX_URL
     fi
 
-    if [ ! -f "$PROJECT_DIR/models/fp32/$MODEL_NAME.xml" ];
+    if [ ! -f "$MODEL_DIR/$MODEL_NAME.xml" ];
     then
         python3 $INSTALL_DIR/deployment_tools/model_optimizer/mo.py \
             --input_model $TEMP_DIR/$MODEL_NAME.onnx \
-            --output_dir $PROJECT_DIR/models/fp32 \
+            --output_dir $MODEL_DIR \
             --model_name $MODEL_NAME \
-            --data_type FP32
+            --data_type $PRECISION
     fi
 }
 
@@ -78,11 +82,11 @@ then
     rm -rf densenet121
 fi
 
-if [ ! -f "$PROJECT_DIR/models/fp32/DenseNet-121.xml" ];
+if [ ! -f "$MODEL_DIR/DenseNet-121.xml" ];
 then
     python3 $INSTALL_DIR/deployment_tools/model_optimizer/mo.py \
         --input_model $TEMP_DIR/DenseNet-121.onnx \
-        --output_dir $PROJECT_DIR/models/fp32 \
+        --output_dir $MODEL_DIR \
         --model_name DenseNet-121 \
-        --data_type FP32
+        --data_type $PRECISION
 fi
