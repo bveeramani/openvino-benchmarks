@@ -63,7 +63,7 @@ caffe R-CNN http://dl.caffe.berkeleyvision.org/bvlc_reference_rcnn_ilsvrc13.caff
 onnx MobileNetV2 https://s3.amazonaws.com/onnx-model-zoo/mobilenet/mobilenetv2-1.0/mobilenetv2-1.0.onnx
 onnx ResNet-18V2 https://s3.amazonaws.com/onnx-model-zoo/resnet/resnet18v2/resnet18v2.onnx
 onnx ResNet-34V2 https://s3.amazonaws.com/onnx-model-zoo/resnet/resnet34v2/resnet34v2.onnx
-onnx ResNet-52V2 https://s3.amazonaws.com/onnx-model-zoo/resnet/resnet52v2/resnet52v2.onnx
+onnx ResNet-50V2 https://s3.amazonaws.com/onnx-model-zoo/resnet/resnet50v2/resnet50v2.onnx
 onnx ResNet-101V2 https://s3.amazonaws.com/onnx-model-zoo/resnet/resnet101v2/resnet101v2.onnx
 onnx ResNet-152V2 https://s3.amazonaws.com/onnx-model-zoo/resnet/resnet152v2/resnet152v2.onnx
 onnx SqueezeNet https://s3.amazonaws.com/onnx-model-zoo/squeezenet/squeezenet1.1/squeezenet1.1.onnx

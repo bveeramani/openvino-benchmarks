@@ -72,7 +72,7 @@ Pre-converted models can be downloaded from [here](https://drive.google.com/driv
 | MobileNetV2  | https://github.com/onnx/models/tree/master/vision/classification/mobilenet    |
 | ResNet-18V2  | https://github.com/onnx/models/tree/master/vision/classification/resnet       |
 | ResNet-34V2  | https://github.com/onnx/models/tree/master/vision/classification/resnet       |
-| ResNet-52V2  | https://github.com/onnx/models/tree/master/vision/classification/resnet       |
+| ResNet-50V2  | https://github.com/onnx/models/tree/master/vision/classification/resnet       |
 | ResNet-101V2 | https://github.com/onnx/models/tree/master/vision/classification/resnet       |
 | ResNet-152V2 | https://github.com/onnx/models/tree/master/vision/classification/resnet       |
 | SqueezeNet   | https://github.com/onnx/models/tree/master/vision/classification/squeezenet   |
