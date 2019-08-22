@@ -4,7 +4,7 @@ PRECISION=$1
 
 TEMP_DIR=/tmp/models
 INSTALL_DIR=/opt/intel/openvino
-MODEL_DIR=$PROJECT_DIR/models/$("$PRECISION" | tr '[:upper:]' '[:lower:]')
+MODEL_DIR=$PROJECT_DIR/models/$(echo "$PRECISION" | tr '[:upper:]' '[:lower:]')
 
 mkdir -p $TEMP_DIR
 mkdir -p $MODEL_DIR
