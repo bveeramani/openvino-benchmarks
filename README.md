@@ -5,7 +5,7 @@ experiments. You can see performance results [here](https://drive.google.com/ope
 ## Benchmark Tool
 ```
 usage: benchmark.py [-h] -m MODEL [-b BATCH_SIZE] [-i NUM_INFER_REQUESTS]
-                    [-a {sync,async}] [-d {CPU,GPU,MYRIAD}] [-f FILENAME]
+                    [-a {sync,async}] [-d {CPU,MYRIAD}] [-f FILENAME]
 
 Benchmark models using OpenVINO.
 
@@ -22,9 +22,9 @@ optional arguments:
   -a {sync,async}, --api {sync,async}
                         Optional. Enable using sync/async API. Default value
                         is sync.
-  -d {CPU,GPU,MYRIAD}, --device {CPU,GPU,MYRIAD}
+  -d {CPU,MYRIAD}, --device {CPU,MYRIAD}
                         Optional. Specify a target device to infer on: CPU,
-                        GPU, or MYRIAD.
+                        or MYRIAD.
   -f FILENAME, --filename FILENAME
                         Optional. Specify the filename where data will be
                         written to.
@@ -113,23 +113,24 @@ Additionally, you can download pre-converted **partial** models from [here](http
 | VGG-16-fc8                        | fc8                     |
 
 ## Known Issues
-* A Neural Compute Stick 2 cannot run YOLOV3 with a batch size of 16
-* A Neural Compute Stick 2 cannot run YOLOV3-Tiny with a batch size of 64
+* A Neural Compute Stick 2 cannot run YOLOV3 with a batch size of 16.
+* A Neural Compute Stick 2 cannot run YOLOV3-Tiny with a batch size of 64.
 
 ## Demo Output
 ```
 C:\Users\Balaji\Documents\GitHub\openvino-benchmarks>python scripts/python/benchmark.py --device MYRIAD --model models/fp16/AlexNet.xml
-[Step 1/6] Configuring plugin for async execution on Windows.
-[Step 2/6] Reading Intermediate Representation of AlexNet.
-[Step 3/6] Setting network batch size to 32.
-[Step 4/6] Loading network to plugin with 2 requests.
-[Step 5/6] Measuring performance for 10 seconds.
-[Step 6/6] Dumping statistics report.
+[Step 1/7] Constructing plugin for MYRIAD device.
+[Step 2/7] Configuring plugin for async execution on Windows.
+[Step 3/7] Reading Intermediate Representation of AlexNet.
+[Step 4/7] Setting network batch size to 32.
+[Step 5/7] Loading network to plugin with 2 inference requests.
+[Step 6/7] Measuring performance for 60 seconds.
+[Step 7/7] Dumping statistics report.
 
 Name:                   AlexNet
 Batch size:             32
 Inference requests:     2
-Throughput (f/s):       16.0213
+Throughput (f/s):       13.9621
 API:                    async
 Device:                 MYRIAD
 ```

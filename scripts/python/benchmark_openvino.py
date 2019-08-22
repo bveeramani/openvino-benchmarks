@@ -9,7 +9,7 @@ counting the number of inferences completed.
 
 usage: benchmark_openvino.py [-h] -m MODEL [-b BATCH_SIZE]
                              [-i NUM_INFER_REQUESTS] [-a {sync,async}]
-                             [-d {CPU,GPU,MYRIAD}] [-f FILENAME]
+                             [-d {CPU,MYRIAD}] [-f FILENAME]
 
 Benchmark models using OpenVINO.
 
@@ -26,9 +26,9 @@ optional arguments:
   -a {sync,async}, --api {sync,async}
                         Optional. Enable using sync/async API. Default value
                         is sync.
-  -d {CPU,GPU,MYRIAD}, --device {CPU,GPU,MYRIAD}
+  -d {CPU,MYRIAD}, --device {CPU,MYRIAD}
                         Optional. Specify a target device to infer on: CPU,
-                        GPU, or MYRIAD.
+                        or MYRIAD.
   -f FILENAME, --filename FILENAME
                         Optional. Specify the filename where data will be
                         written to.
@@ -113,9 +113,8 @@ def parse_arguments():
         type=str,
         required=False,
         default="CPU",
-        choices=["CPU", "GPU", "MYRIAD"],
-        help=
-        "Optional. Specify a target device to infer on: CPU, GPU, or MYRIAD.")
+        choices=["CPU", "MYRIAD"],
+        help="Optional. Specify a target device to infer on: CPU or MYRIAD.")
     parser.add_argument(
         '-f',
         '--filename',
@@ -134,7 +133,7 @@ def benchmark(xml_path, batch_size, num_infer_requests, api, device):
         batch_size (int): The desired batch size.
         num_infer_requests (int): The desired number of inference requests.
         api (str): Either 'sync' or 'async'.
-        device (str): One of 'CPU', 'GPU', or 'MYRIAD'.
+        device (str): One of 'CPU' or 'MYRIAD'.
 
     Returns:
         A dictionary containing values for the keys 'model', 'batch_size',
@@ -153,32 +152,43 @@ def benchmark(xml_path, batch_size, num_infer_requests, api, device):
     if api not in {"sync", "async"}:
         raise ValueError("expected api to be 'sync' or 'async' but got %s." %
                          api)
-    if device not in {"CPU", "GPU", "MYRIAD"}:
-        raise ValueError(
-            "expected api to be 'CPU', 'GPU', or 'MYRIAD' but got %s." % api)
+    if device not in {"CPU", "MYRIAD"}:
+        raise ValueError("expected api to be 'CPU' or 'MYRIAD' but got %s." %
+                         api)
 
-    plugin = IEPlugin(device)
     model_name = os.path.splitext(os.path.basename(xml_path))[0]
+    results = {
+        "name": model_name,
+        "batch_size": batch_size,
+        "requests": num_infer_requests,
+        "latency": None,
+        "throughput": None,
+        "api": api,
+        "device": device
+    }
 
-    print("[Step 1/6] Configuring plugin for %s execution on %s." %
+    print("[Step 1/7] Constructing plugin for %s device." % device)
+    plugin = IEPlugin(device)
+
+    print("[Step 2/7] Configuring plugin for %s execution on %s." %
           (api, platform.system()))
     configure_plugin(plugin, api)
 
-    print("[Step 2/6] Reading Intermediate Representation of %s." % model_name)
+    print("[Step 3/7] Reading Intermediate Representation of %s." % model_name)
     network = create_network(xml_path)
 
-    print("[Step 3/6] Setting network batch size to %d." % batch_size)
+    print("[Step 4/7] Setting network batch size to %d." % batch_size)
     set_batch_size(network, batch_size)
 
-    print("[Step 4/6] Loading network to plugin with %d requests." %
+    print("[Step 5/7] Loading network to plugin with %d inference requests." %
           num_infer_requests)
     try:
         execution_network = plugin.load(network, num_infer_requests)
-    except RuntimeError:
-        print("[ERROR] Failed to load plugin to device. Benchmark will exit.")
-        return {field: None for field in CSV_FIELDS}
+    except RuntimeError as exception:
+        print("[ERROR] %s. Benchmark will exit." % exception)
+        return results
 
-    print("[Step 5/6] Measuring performance for %d seconds." %
+    print("[Step 6/7] Measuring performance for %d seconds." %
           EXPERIMENT_DURATION)
     if api == "sync":
         latency, throughput = benchmark_sync(execution_network,
@@ -186,18 +196,10 @@ def benchmark(xml_path, batch_size, num_infer_requests, api, device):
     elif api == "async":
         latency, throughput = benchmark_async(execution_network,
                                               duration=EXPERIMENT_DURATION)
+    results["latency"] = latency
+    results["throughput"] = throughput
 
-    results = {
-        "name": model_name,
-        "batch_size": batch_size,
-        "requests": num_infer_requests,
-        "latency": latency,
-        "throughput": throughput,
-        "api": api,
-        "device": device
-    }
-
-    print("[Step 6/6] Dumping statistics report.")
+    print("[Step 7/7] Dumping statistics report.")
     print_results(results)
 
     del execution_network
