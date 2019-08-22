@@ -4,9 +4,8 @@
 # For a copy, see <https://opensource.org/licenses/MIT>.
 """Functions for benchmarking models using OpenVINO as the backend.
 
-Synchronous benchmarks are measured by repeating inference for a fixed number
-of trials (default: 100). Asynchronous benchmarks are measured by repeating
-inference as many times as possible in a fixed amount of time (default: 60s).
+Performance is measured by running inference continually for 60 seconds and
+counting the number of inferences completed.
 
 usage: benchmark_openvino.py [-h] -m MODEL [-b BATCH_SIZE]
                              [-i NUM_INFER_REQUESTS] [-a {sync,async}]
@@ -41,12 +40,11 @@ from statistics import median
 from timeit import default_timer as timer
 
 import numpy as np
-from tqdm import tqdm, trange  # This is used to create progress bars
+from tqdm import tqdm
 
 from openvino.inference_engine import IENetwork, IEPlugin
 
-NUM_SYNC_TRIALS = 100
-ASYNC_EXPERIMENT_DURATION = 60
+EXPERIMENT_DURATION = 60
 
 # These are the settings used in the OpenVINO benchmark_app sample
 CPU_BIND_THREAD = "YES"
@@ -174,18 +172,20 @@ def benchmark(xml_path, batch_size, num_infer_requests, api, device):
 
     print("[Step 4/6] Loading network to plugin with %d requests." %
           num_infer_requests)
-    execution_network = plugin.load(network, num_infer_requests)
+    try:
+        execution_network = plugin.load(network, num_infer_requests)
+    except RuntimeError:
+        print("[ERROR] Failed to load plugin to device. Benchmark will exit.")
+        return {field: None for field in CSV_FIELDS}
 
+    print("[Step 5/6] Measuring performance for %d seconds." %
+          EXPERIMENT_DURATION)
     if api == "sync":
-        print("[Step 5/6] Measuring performance over %d trials." %
-              NUM_SYNC_TRIALS)
         latency, throughput = benchmark_sync(execution_network,
-                                             num_trials=NUM_SYNC_TRIALS)
+                                             duration=EXPERIMENT_DURATION)
     elif api == "async":
-        print("[Step 5/6] Measuring performance for %d seconds." %
-              ASYNC_EXPERIMENT_DURATION)
-        latency, throughput = benchmark_async(
-            execution_network, duration=ASYNC_EXPERIMENT_DURATION)
+        latency, throughput = benchmark_async(execution_network,
+                                              duration=EXPERIMENT_DURATION)
 
     results = {
         "name": model_name,
@@ -207,7 +207,7 @@ def benchmark(xml_path, batch_size, num_infer_requests, api, device):
 
 
 def configure_plugin(plugin, api):
-    """Configures a plugin to be run on the target device using the specified api.
+    """Configures a plugin to be run on the target device using the specified API.
 
     Arguments:
         plugin (IEPlugin): An IEPlugin instance.
@@ -302,8 +302,7 @@ def get_batch_size(execution_network):
     Raises:
         NotImplementedError: if network has more than one input layer.
     """
-    assert execution_network.requests
-    inputs = execution_network.requests[0].inputs
+    inputs = get_inputs(execution_network)
 
     if len(inputs) != 1:
         raise NotImplementedError("expected one input layer but got %d." %
@@ -327,8 +326,7 @@ def create_inputs(execution_network):
     Raises:
         NotImplementedError: if execution_network has more than one input layer.
     """
-    assert execution_network.requests
-    inputs = execution_network.requests[0].inputs
+    inputs = get_inputs(execution_network)
 
     if len(inputs) != 1:
         raise NotImplementedError("expected one input layer but got %d." %
@@ -341,12 +339,37 @@ def create_inputs(execution_network):
     return {input_layer: input_images}
 
 
-def benchmark_sync(execution_network, num_trials):
+def get_inputs(execution_network, request_index=0):
+    """Returns the inputs of the InferenceRequst at the specified index.
+
+    Arguments:
+        execution_network (ExecutableNetwork): An ExecutableNetwork instance.
+
+    Returns:
+        A dictionary that maps input layers to numpy.ndarray objects of proper
+        shape.
+    """
+    assert execution_network.requests
+
+    request = execution_network.requests[request_index]
+
+    if request.wait(0) == -8:
+        raise BusyRequestError(
+            "Cannot access request inputs because the request is busy.")
+
+    return request.inputs
+
+
+class BusyRequestError(RuntimeError):
+    """Error thrown when trying to access the inputs of a busy InferRequest."""
+
+
+def benchmark_sync(execution_network, duration):
     """Benchmark the given execution network using synchronous inference.
 
     Arguments:
         execution_network (ExecutableNetwork): An ExecutableNetwork instance.
-        num_trials (int): The number of inference trials to run.
+        duration (float): The length of the benchmark in seconds.
 
     Returns:
         A two-tuple. The first element is the median prediction latency, and the
@@ -355,28 +378,37 @@ def benchmark_sync(execution_network, num_trials):
     Raises:
         ValueError: if num_trials is not a positive integer
     """
-    if not isinstance(num_trials, int) or num_trials < 1:
-        raise ValueError("num_trials must be a positive integer.")
+    if duration < 0:
+        raise ValueError("duration must be a non-negative number.")
 
     inference_inputs = create_inputs(execution_network)
     execution_network.infer(inference_inputs)  # cache warmup
 
-    times = []
-    for _ in trange(num_trials, leave=False):
-        inference_inputs = create_inputs(execution_network)
+    latencies = []
 
-        start_time = timer()
+    progress_bar = tqdm(total=duration,
+                        leave=False,
+                        bar_format="{l_bar}{bar}| {elapsed}")
+
+    time_elapsed = 0
+    while time_elapsed < duration:
+        inference_start_time = timer()
         execution_network.infer(inference_inputs)
-        end_time = timer()
+        inference_end_time = timer()
 
-        time_elapsed = end_time - start_time
-        times.append(time_elapsed)
+        prediction_latency = inference_end_time - inference_start_time
+        latencies.append(prediction_latency)
 
-    latency = median(times)
+        time_elapsed += prediction_latency
+        progress_bar.update(prediction_latency)
+
+    progress_bar.close()
+
+    median_latency = median(latencies)
     batch_size = get_batch_size(execution_network)
-    throughput = batch_size / latency
+    throughput = batch_size / median_latency
 
-    return latency, throughput
+    return median_latency, throughput
 
 
 def benchmark_async(execution_network, duration):
@@ -385,17 +417,14 @@ def benchmark_async(execution_network, duration):
     The median prediction latency is undefined for asynchronous inference. So,
     the returned prediction latency will always be None.
 
-    benchmark_sync generates new inputs every iterations, but benchmark_async
-    uses the same inputs for the entire duration. This behaviour can also be
-    found in the OpenVINO benchmark_app sample, on which this function is based.
-
+    This function is based on code in the OpenVINO benchmark_app sample.
     See https://github.com/opencv/dldt/blob/2019/inference-engine/ie_bridges/
         python/sample/benchmark_app/benchmark/benchmark.py.
     This function was checked with commit 693ab4e.
 
     Arguments:
         execution_network (ExecutableNetwork): An ExecutableNetwork instance.
-        duration (float): A non-negative number.
+        duration (float): The length of the benchmark in seconds.
 
     Returns:
         A two-tuple. The first element is the median prediction latency, and the
@@ -406,7 +435,6 @@ def benchmark_async(execution_network, duration):
 
     inference_inputs = create_inputs(execution_network)
     inference_requests = execution_network.requests
-
     required_inference_requests_were_executed = False
 
     current_inference = 0
@@ -439,9 +467,10 @@ def benchmark_async(execution_network, duration):
         if previous_inference >= len(inference_requests):
             previous_inference = 0
 
+        iteration_end_time = timer()
         iterations_completed += 1
 
-        iteration_duration = timer() - iteration_start_time
+        iteration_duration = iteration_end_time - iteration_start_time
         time_elapsed += iteration_duration
 
         progress_bar.update(iteration_duration)

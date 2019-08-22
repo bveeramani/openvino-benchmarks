@@ -16,7 +16,7 @@ IF "%1"=="MYRIAD" (
 echo Using %1 device.
 
 FOR /R %root%\models\%precision% %%M IN (*.xml) DO (
-    FOR %%I IN (1, 2, 4, 8, 16) DO (
+    FOR %%I IN (1, 2, 4, 8) DO (
       python %root%\scripts\python\benchmark.py --model %%M --device %1^
       --batch_size 32 -f .\benchmarks.csv --num_infer_requests %%I --api async
     )

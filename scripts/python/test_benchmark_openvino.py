@@ -64,6 +64,21 @@ class BenchmarkTest(unittest.TestCase):
 
         self.assertEqual(input_images.shape, (32, 3, 224, 224))
 
+    def test_get_inputs(self):
+        network = create_network(XML_PATH)
+        set_batch_size(network, 32)
+        plugin = IEPlugin(device="CPU")
+        execution_network = plugin.load(network)
+
+        inputs = get_inputs(execution_network, request_index=0)
+
+        self.assertEqual(len(inputs), 1)
+
+        input_layer = next(iter(inputs))
+        input_images = inputs[input_layer]
+
+        self.assertEqual(input_images.shape, (32, 3, 224, 224))
+
     def test_benchmark_sync(self):
         network = create_network(XML_PATH)
         set_batch_size(network, 32)
@@ -71,7 +86,7 @@ class BenchmarkTest(unittest.TestCase):
         configure_plugin(plugin, api="sync")
         execution_network = plugin.load(network)
 
-        latency, throughput = benchmark_sync(execution_network, num_trials=1)
+        latency, throughput = benchmark_sync(execution_network, duration=1)
 
         # I'm assuming that regardless of hardware, the prediction latency will
         # be less than 60s and the throughput will be less than 500 FPS.

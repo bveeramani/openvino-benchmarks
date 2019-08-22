@@ -112,6 +112,10 @@ Additionally, you can download pre-converted **partial** models from [here](http
 | VGG-16-fc7                        | fc7                     |
 | VGG-16-fc8                        | fc8                     |
 
+## Known Issues
+* A Neural Compute Stick 2 cannot run YOLOV3 with a batch size of 16
+* A Neural Compute Stick 2 cannot run YOLOV3-Tiny with a batch size of 64
+
 ## Demo Output
 ```
 C:\Users\Balaji\Documents\GitHub\openvino-benchmarks>python scripts/python/benchmark.py --device MYRIAD --model models/fp16/AlexNet.xml

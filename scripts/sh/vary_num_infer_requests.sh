@@ -16,7 +16,7 @@ fi
 
 for model in $ROOT/models/$PRECISION/*.xml
 do
-    for nireq in 1 2 4 8 16
+    for nireq in 1 2 4 8
     do
         python3 $ROOT/scripts/python/benchmark.py --model $model -d $DEVICE \
         --batch_size 32 -f ./benchmarks.csv --num_infer_requests $nireq --api \
