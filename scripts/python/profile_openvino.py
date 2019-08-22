@@ -23,7 +23,8 @@ import ast
 import os
 import xml.dom.minidom
 
-CSV_FIELDS = ("name", "channels", "height", "width", "size", "layers", "ops")
+CSV_FIELDS = ("name", "precision", "channels", "height", "width", "size",
+              "layers", "ops")
 
 
 def main():
@@ -32,6 +33,7 @@ def main():
 
     results = {
         "name": os.path.splitext(os.path.basename(args.model))[0],
+        "precision": get_precision(args.model),
         "channels": get_input_shape(args.model)[0],
         "height": get_input_shape(args.model)[1],
         "width": get_input_shape(args.model)[2],
@@ -62,6 +64,22 @@ def parse_args():
         default=None,
         help="Optional. Specify the filename where results will be written to.")
     return parser.parse_args()
+
+
+def get_precision(xml_path):
+    """Returns the weight precision of a model.
+
+    Arguments:
+        xml_path (str): Path to an IR XML file.
+
+    Returns:
+        Either 'FP16' or 'FP32'.
+    """
+    dom = xml.dom.minidom.parse(xml_path)
+    layers = dom.getElementsByTagName("layer")
+    precision = layers[0].getAttribute("precision")
+    assert precision in {"FP16", "FP32"}
+    return precision
 
 
 def get_input_shape(xml_path):

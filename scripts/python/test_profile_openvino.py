@@ -24,6 +24,11 @@ class ProfileTest(unittest.TestCase):
 
         self.assertTrue(shape, (3, 227, 227))
 
+    def test_get_precision(self):
+        precision = get_precision(XML_PATH)
+
+        self.assertEqual(precision, "FP32")
+
     def test_measure_size(self):
         size = measure_size(XML_PATH)
         # The size on my device is 243.860896MB.
@@ -53,6 +58,7 @@ class ProfileTest(unittest.TestCase):
     def test_write_results(self):
         results = {
             "name": "",
+            "precision": "",
             "channels": 0,
             "height": 0,
             "width": 0,
@@ -69,7 +75,7 @@ class ProfileTest(unittest.TestCase):
 
         with open(random_filename) as file:
             actual = file.read()
-        expected = "name,channels,height,width,size,layers,ops\n,0,0,0,0,0,0\n"
+        expected = "name,precision,channels,height,width,size,layers,ops\n,,0,0,0,0,0,0\n"
 
         os.remove(random_filename)
         self.assertEqual(actual, expected)
