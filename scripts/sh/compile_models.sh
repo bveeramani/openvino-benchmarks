@@ -2,6 +2,8 @@ TEMP_DIR=/tmp/models/
 INSTALL_DIR=/opt/intel/openvino
 PROJECT_DIR=$(dirname "$0")/../..
 
+mkdir -p $TEMP_DIR
+
 curl -o $TEMP_DIR/AlexNet.caffemodel http://dl.caffe.berkeleyvision.org/bvlc_alexnet.caffemodel
 curl -o $TEMP_DIR/AlexNet.prototxt https://raw.githubusercontent.com/BVLC/caffe/master/models/bvlc_alexnet/deploy.prototxt
 python3 $INSTALL_DIR/deployment_tools/model_optimizer/mo.py \
