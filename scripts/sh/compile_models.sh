@@ -174,15 +174,15 @@ main()
 
     # YOLO-family models
     git clone https://github.com/mystic123/tensorflow-yolo-v3.git $TF_DIR
-    git -C $TF_DIR/tensorflow-yolo-v3 checkout ed60b90
+    git -C $TF_DIR checkout ed60b90
     curl -o $TF_DIR/coco.names https://raw.githubusercontent.com/pjreddie/darknet/master/data/coco.names
     curl -o $TF_DIR/yolov3.weights https://pjreddie.com/media/files/yolov3.weights
     curl -o $TF_DIR/yolov3-tiny.weights https://pjreddie.com/media/files/yolov3-tiny.weights
-    python3 $TF_DIR/convert_weights_pb.py --class_names coco.names \
-        --data_format NHWC --weights_file yolov3.weights
+    python3 $TF_DIR/convert_weights_pb.py --class_names $TF_DIR/coco.names \
+        --data_format NHWC --weights_file $TF_DIR/yolov3.weights
     mv frozen_darknet_yolov3_model.pb $TF_DIR/YOLOV3.pb
-    python3 $TF_DIRconvert_weights_pb.py --class_names coco.names \
-        --data_format NHWC --weights_file yolov3-tiny.weights --tiny
+    python3 $TF_DIRconvert_weights_pb.py --class_names $TF_DIR/coco.names \
+        --data_format NHWC --weights_file $TF_DIR/yolov3-tiny.weights --tiny
     mv frozen_darknet_yolov3_model.pb $TF_DIR/YOLOV3-Tiny.pb
 
     EXTENSIONS_DIR=$INSTALL_DIR/deployment_tools/model_optimizer/extensions
