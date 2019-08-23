@@ -13,7 +13,8 @@ then
     exit 9
 fi
 
-mkdir -p $TEMP_DIR
+mkdir -p $CAFFE_DIR
+mkdir -p $ONNX_DIR
 mkdir -p $MODEL_DIR
 
 caffe()
