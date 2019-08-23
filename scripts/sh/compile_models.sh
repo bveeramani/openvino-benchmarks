@@ -173,9 +173,10 @@ main()
         rm -f $ONNX_DIR/DenseNet-121.onnx
     fi
 
+    # YOLO family models are a special case
     git clone https://github.com/mystic123/tensorflow-yolo-v3.git $TF_DIR
-    cd $TF_DIR/tensorflow-yolo-v3
-    git -checkout ed60b90
+    cd $TF_DIR
+    git checkout ed60b90
     curl -o coco.names https://raw.githubusercontent.com/pjreddie/darknet/master/data/coco.names
     curl -o yolov3.weights https://pjreddie.com/media/files/yolov3.weights
     curl -o yolov3-tiny.weights https://pjreddie.com/media/files/yolov3-tiny.weights
