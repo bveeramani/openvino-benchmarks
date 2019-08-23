@@ -1,9 +1,11 @@
 #!/bin/bash
 PROJECT_DIR=$(dirname "$0")/../..
 PRECISION=$1
+MODEL_TYPE=$2
 
 CAFFE_DIR=/tmp/caffe
 ONNX_DIR=/tmp/onnx
+TF_DIR=/tmp/tf
 INSTALL_DIR=/opt/intel/openvino
 MODEL_DIR=$PROJECT_DIR/models/$(echo "$PRECISION" | tr '[:upper:]' '[:lower:]')
 
@@ -15,6 +17,7 @@ fi
 
 mkdir -p $CAFFE_DIR
 mkdir -p $ONNX_DIR
+mkdir -p $TF_DIR
 mkdir -p $MODEL_DIR
 
 caffe()
@@ -29,7 +32,7 @@ caffe()
     if [ -f "$MODEL_DIR/$MODEL_NAME.xml" ];
     then
         echo "$MODEL_DIR/$MODEL_NAME has already been compiled."
-        exit 0
+        return 0
     fi
 
     if [ ! -f "$CAFFE_DIR/$CAFFEMODEL_NAME" ];
@@ -61,7 +64,7 @@ onnx()
     if [ -f "$MODEL_DIR/$MODEL_NAME.xml" ];
     then
         echo "$MODEL_DIR/$MODEL_NAME has already been compiled."
-        exit 0
+        return 0
     fi
 
     if [ ! -f "$ONNX_DIR/$ONNX_NAME" ];
@@ -77,205 +80,254 @@ onnx()
         `if [ -z "$OUTPUT_LAYER_NAME" ]; then echo "--output $OUTPUT_LAYER_NAME"; fi`
 }
 
-caffe AlexNet \
-    AlexNet.caffemodel http://dl.caffe.berkeleyvision.org/bvlc_alexnet.caffemodel \
-    AlexNet.prototxt https://raw.githubusercontent.com/BVLC/caffe/master/models/bvlc_alexnet/deploy.prototxt
+main()
+{
+    caffe AlexNet \
+        AlexNet.caffemodel http://dl.caffe.berkeleyvision.org/bvlc_alexnet.caffemodel \
+        AlexNet.prototxt https://raw.githubusercontent.com/BVLC/caffe/master/models/bvlc_alexnet/deploy.prototxt
 
-caffe AlexNet-conv1 \
-    AlexNet.caffemodel http://dl.caffe.berkeleyvision.org/bvlc_alexnet.caffemodel \
-    AlexNet.prototxt https://raw.githubusercontent.com/BVLC/caffe/master/models/bvlc_alexnet/deploy.prototxt \
-    conv1
+    rm -f $CAFFE_DIR/AlexNet.*
 
-caffe AlexNet-conv2 \
-    AlexNet.caffemodel http://dl.caffe.berkeleyvision.org/bvlc_alexnet.caffemodel \
-    AlexNet.prototxt https://raw.githubusercontent.com/BVLC/caffe/master/models/bvlc_alexnet/deploy.prototxt \
-    conv2
+    caffe GoogleNet \
+        GoogleNet.caffemodel http://dl.caffe.berkeleyvision.org/bvlc_googlenet.caffemodel \
+        GoogleNet.prototxt https://raw.githubusercontent.com/BVLC/caffe/master/models/bvlc_googlenet/deploy.prototxt
 
-caffe AlexNet-conv3 \
-    AlexNet.caffemodel http://dl.caffe.berkeleyvision.org/bvlc_alexnet.caffemodel \
-    AlexNet.prototxt https://raw.githubusercontent.com/BVLC/caffe/master/models/bvlc_alexnet/deploy.prototxt \
-    conv3
+    rm -f $CAFFE_DIR/GoogleNet.*
 
-caffe AlexNet-conv4 \
-    AlexNet.caffemodel http://dl.caffe.berkeleyvision.org/bvlc_alexnet.caffemodel \
-    AlexNet.prototxt https://raw.githubusercontent.com/BVLC/caffe/master/models/bvlc_alexnet/deploy.prototxt \
-    conv4
+    caffe VGG-16 \
+        VGG-16.caffemodel http://www.robots.ox.ac.uk/~vgg/software/very_deep/caffe/VGG_ILSVRC_16_layers.caffemodel \
+        VGG-16.prototxt https://gist.githubusercontent.com/ksimonyan/211839e770f7b538e2d8/raw/ded9363bd93ec0c770134f4e387d8aaaaa2407ce/VGG_ILSVRC_16_layers_deploy.prototxt
 
-caffe AlexNet-conv5 \
-    AlexNet.caffemodel http://dl.caffe.berkeleyvision.org/bvlc_alexnet.caffemodel \
-    AlexNet.prototxt https://raw.githubusercontent.com/BVLC/caffe/master/models/bvlc_alexnet/deploy.prototxt \
-    conv5
+    rm -f $CAFFE_DIR/VGG-16.*
 
-caffe AlexNet-fc6 \
-    AlexNet.caffemodel http://dl.caffe.berkeleyvision.org/bvlc_alexnet.caffemodel \
-    AlexNet.prototxt https://raw.githubusercontent.com/BVLC/caffe/master/models/bvlc_alexnet/deploy.prototxt \
-    fc6
+    caffe VGG-19 \
+        VGG-19.caffemodel http://www.robots.ox.ac.uk/~vgg/software/very_deep/caffe/VGG_ILSVRC_19_layers.caffemodel \
+        VGG-16.prototxt https://gist.githubusercontent.com/ksimonyan/3785162f95cd2d5fee77/raw/f43eeefc869d646b449aa6ce66f87bf987a1c9b5/VGG_ILSVRC_19_layers_deploy.prototxt
 
-caffe AlexNet-fc7 \
-    AlexNet.caffemodel http://dl.caffe.berkeleyvision.org/bvlc_alexnet.caffemodel \
-    AlexNet.prototxt https://raw.githubusercontent.com/BVLC/caffe/master/models/bvlc_alexnet/deploy.prototxt \
-    fc7
+    rm -f $CAFFE_DIR/VGG-19.*
 
-caffe AlexNet-fc8 \
-    AlexNet.caffemodel http://dl.caffe.berkeleyvision.org/bvlc_alexnet.caffemodel \
-    AlexNet.prototxt https://raw.githubusercontent.com/BVLC/caffe/master/models/bvlc_alexnet/deploy.prototxt \
-    fc8
+    caffe CaffeNet \
+        CaffeNet.caffemodel http://dl.caffe.berkeleyvision.org/bvlc_reference_caffenet.caffemodel \
+        CaffeNet.prototxt https://raw.githubusercontent.com/BVLC/caffe/master/models/bvlc_reference_caffenet/deploy.prototxt
 
-rm $CAFFE_DIR/AlexNet.*
+    rm -f $CAFFE_DIR/CaffeNet.*
 
-caffe GoogleNet \
-    GoogleNet.caffemodel http://dl.caffe.berkeleyvision.org/bvlc_googlenet.caffemodel \
-    GoogleNet.prototxt https://raw.githubusercontent.com/BVLC/caffe/master/models/bvlc_googlenet/deploy.prototxt
+    caffe R-CNN \
+        R-CNN.caffemodel http://dl.caffe.berkeleyvision.org/bvlc_reference_rcnn_ilsvrc13.caffemodel \
+        R-CNN.prototxt https://raw.githubusercontent.com/BVLC/caffe/master/models/bvlc_reference_rcnn_ilsvrc13/deploy.prototxt
 
-caffe GoogleNet-inception_3b_3x3_reduce \
-    GoogleNet.caffemodel http://dl.caffe.berkeleyvision.org/bvlc_googlenet.caffemodel \
-    GoogleNet.prototxt https://raw.githubusercontent.com/BVLC/caffe/master/models/bvlc_googlenet/deploy.prototxt \
-    inception_3b/3x3_reduce
+    rm -f $CAFFE_DIR/R-CNN.*
 
-caffe GoogleNet-inception_4b_3x3_reduce \
-    GoogleNet.caffemodel http://dl.caffe.berkeleyvision.org/bvlc_googlenet.caffemodel \
-    GoogleNet.prototxt https://raw.githubusercontent.com/BVLC/caffe/master/models/bvlc_googlenet/deploy.prototxt \
-    inception_4b/3x3_reduce
+    onnx MobileNetV2 \
+        MobileNetV2.onnx https://s3.amazonaws.com/onnx-model-zoo/mobilenet/mobilenetv2-1.0/mobilenetv2-1.0.onnx
 
-caffe GoogleNet-inception_4c_5x5 \
-    GoogleNet.caffemodel http://dl.caffe.berkeleyvision.org/bvlc_googlenet.caffemodel \
-    GoogleNet.prototxt https://raw.githubusercontent.com/BVLC/caffe/master/models/bvlc_googlenet/deploy.prototxt \
-    inception_4c/5x5
+    rm -f $ONNX_DIR/MobileNetV2.*
 
-caffe GoogleNet-inception_4e_5x5_reduce \
-    GoogleNet.caffemodel http://dl.caffe.berkeleyvision.org/bvlc_googlenet.caffemodel \
-    GoogleNet.prototxt https://raw.githubusercontent.com/BVLC/caffe/master/models/bvlc_googlenet/deploy.prototxt \
-    inception_4e/5x5_reduce
+    onnx ResNet-18V2 \
+        ResNet-18V2.onnx https://s3.amazonaws.com/onnx-model-zoo/resnet/resnet18v2/resnet18v2.onnx
 
-caffe GoogleNet-inception_5b_pool_proj \
-    GoogleNet.caffemodel http://dl.caffe.berkeleyvision.org/bvlc_googlenet.caffemodel \
-    GoogleNet.prototxt https://raw.githubusercontent.com/BVLC/caffe/master/models/bvlc_googlenet/deploy.prototxt \
-    inception_5b/pool_proj
+    rm -f $ONNX_DIR/ResNet-18V2.*
 
-caffe GoogleNet-loss3_classifier \
-    GoogleNet.caffemodel http://dl.caffe.berkeleyvision.org/bvlc_googlenet.caffemodel \
-    GoogleNet.prototxt https://raw.githubusercontent.com/BVLC/caffe/master/models/bvlc_googlenet/deploy.prototxt \
-    loss3/classifier
+    onnx ResNet-34V2 \
+        ResNet-34V2.onnx https://s3.amazonaws.com/onnx-model-zoo/resnet/resnet34v2/resnet34v2.onnx
 
-rm $CAFFE_DIR/GoogleNet.*
+    rm -f $ONNX_DIR/ResNet-34V2.*
 
-caffe VGG-16 \
-    VGG-16.caffemodel http://www.robots.ox.ac.uk/~vgg/software/very_deep/caffe/VGG_ILSVRC_16_layers.caffemodel \
-    VGG-16.prototxt https://gist.githubusercontent.com/ksimonyan/211839e770f7b538e2d8/raw/ded9363bd93ec0c770134f4e387d8aaaaa2407ce/VGG_ILSVRC_16_layers_deploy.prototxt
+    onnx ResNet-50V2 \
+        ResNet-50V2.onnx https://s3.amazonaws.com/onnx-model-zoo/resnet/resnet50v2/resnet50v2.onnx
 
-caffe VGG-16-conv2_1 \
-    VGG-16.caffemodel http://www.robots.ox.ac.uk/~vgg/software/very_deep/caffe/VGG_ILSVRC_16_layers.caffemodel \
-    VGG-16.prototxt https://gist.githubusercontent.com/ksimonyan/211839e770f7b538e2d8/raw/ded9363bd93ec0c770134f4e387d8aaaaa2407ce/VGG_ILSVRC_16_layers_deploy.prototxt \
-    conv2_1
+    rm -f $ONNX_DIR/ResNet-50V2.*
 
-caffe VGG-16-conv3_1 \
-    VGG-16.caffemodel http://www.robots.ox.ac.uk/~vgg/software/very_deep/caffe/VGG_ILSVRC_16_layers.caffemodel \
-    VGG-16.prototxt https://gist.githubusercontent.com/ksimonyan/211839e770f7b538e2d8/raw/ded9363bd93ec0c770134f4e387d8aaaaa2407ce/VGG_ILSVRC_16_layers_deploy.prototxt \
-    conv3_1
+    onnx ResNet-101V2 \
+        ResNet-101V2.onnx https://s3.amazonaws.com/onnx-model-zoo/resnet/resnet101v2/resnet101v2.onnx
 
-caffe VGG-16-conv4_1 \
-    VGG-16.caffemodel http://www.robots.ox.ac.uk/~vgg/software/very_deep/caffe/VGG_ILSVRC_16_layers.caffemodel \
-    VGG-16.prototxt https://gist.githubusercontent.com/ksimonyan/211839e770f7b538e2d8/raw/ded9363bd93ec0c770134f4e387d8aaaaa2407ce/VGG_ILSVRC_16_layers_deploy.prototxt \
-    conv4_1
+    rm -f $ONNX_DIR/ResNet-101V2.*
 
-caffe VGG-16-conv4_3 \
-    VGG-16.caffemodel http://www.robots.ox.ac.uk/~vgg/software/very_deep/caffe/VGG_ILSVRC_16_layers.caffemodel \
-    VGG-16.prototxt https://gist.githubusercontent.com/ksimonyan/211839e770f7b538e2d8/raw/ded9363bd93ec0c770134f4e387d8aaaaa2407ce/VGG_ILSVRC_16_layers_deploy.prototxt \
-    conv4_3
+    onnx ResNet-152V2 \
+        ResNet-152V2.onnx https://s3.amazonaws.com/onnx-model-zoo/resnet/resnet152v2/resnet152v2.onnx
 
-caffe VGG-16-conv5_3 \
-    VGG-16.caffemodel http://www.robots.ox.ac.uk/~vgg/software/very_deep/caffe/VGG_ILSVRC_16_layers.caffemodel \
-    VGG-16.prototxt https://gist.githubusercontent.com/ksimonyan/211839e770f7b538e2d8/raw/ded9363bd93ec0c770134f4e387d8aaaaa2407ce/VGG_ILSVRC_16_layers_deploy.prototxt \
-    conv5_3
+    rm -f $ONNX_DIR/ResNet-152V2.*
 
-caffe VGG-16-fc6 \
-    VGG-16.caffemodel http://www.robots.ox.ac.uk/~vgg/software/very_deep/caffe/VGG_ILSVRC_16_layers.caffemodel \
-    VGG-16.prototxt https://gist.githubusercontent.com/ksimonyan/211839e770f7b538e2d8/raw/ded9363bd93ec0c770134f4e387d8aaaaa2407ce/VGG_ILSVRC_16_layers_deploy.prototxt \
-    fc6
+    onnx SqueezeNet \
+        SqueezeNet.onnx https://s3.amazonaws.com/onnx-model-zoo/squeezenet/squeezenet1.1/squeezenet1.1.onnx
 
-caffe VGG-16-fc7 \
-    VGG-16.caffemodel http://www.robots.ox.ac.uk/~vgg/software/very_deep/caffe/VGG_ILSVRC_16_layers.caffemodel \
-    VGG-16.prototxt https://gist.githubusercontent.com/ksimonyan/211839e770f7b538e2d8/raw/ded9363bd93ec0c770134f4e387d8aaaaa2407ce/VGG_ILSVRC_16_layers_deploy.prototxt \
-    fc7
+    rm -f $ONNX_DIR/SqueezeNet.*
 
-caffe VGG-16-fc8 \
-    VGG-16.caffemodel http://www.robots.ox.ac.uk/~vgg/software/very_deep/caffe/VGG_ILSVRC_16_layers.caffemodel \
-    VGG-16.prototxt https://gist.githubusercontent.com/ksimonyan/211839e770f7b538e2d8/raw/ded9363bd93ec0c770134f4e387d8aaaaa2407ce/VGG_ILSVRC_16_layers_deploy.prototxt \
-    fc8
+    # DenseNet is a special case
+    if [ ! -f "$ONNX_DIR/DenseNet-121.onnx" ];
+    then
+        curl -o densenet121.tar.gz https://s3.amazonaws.com/download.onnx/models/opset_8/densenet121.tar.gz
+        tar -xzf densenet121.tar.gz
+        mv densenet121/model.onnx $ONNX_DIR/DenseNet-121.onnx
+        rm densenet121.tar.gz
+        rm -rf densenet121
+    fi
 
-rm $CAFFE_DIR/VGG-16.*
+    if [ ! -f "$MODEL_DIR/DenseNet-121.xml" ];
+    then
+        python3 $INSTALL_DIR/deployment_tools/model_optimizer/mo.py \
+            --input_model $ONNX_DIR/DenseNet-121.onnx \
+            --output_dir $MODEL_DIR \
+            --model_name DenseNet-121 \
+            --data_type $PRECISION
+        rm -f $ONNX_DIR/DenseNet-121.onnx
+    fi
 
-caffe VGG-19 \
-    VGG-19.caffemodel http://www.robots.ox.ac.uk/~vgg/software/very_deep/caffe/VGG_ILSVRC_19_layers.caffemodel \
-    VGG-16.prototxt https://gist.githubusercontent.com/ksimonyan/3785162f95cd2d5fee77/raw/f43eeefc869d646b449aa6ce66f87bf987a1c9b5/VGG_ILSVRC_19_layers_deploy.prototxt
+    git clone https://github.com/mystic123/tensorflow-yolo-v3.git $TF_DIR
+    cd $TF_DIR/tensorflow-yolo-v3
+    git -checkout ed60b90
+    curl -o coco.names https://raw.githubusercontent.com/pjreddie/darknet/master/data/coco.names
+    curl -o yolov3.weights https://pjreddie.com/media/files/yolov3.weights
+    curl -o yolov3-tiny.weights https://pjreddie.com/media/files/yolov3-tiny.weights
+    python3 convert_weights_pb.py --class_names coco.names --data_format NHWC --weights_file yolov3.weights
+    mv frozen_darknet_yolov3_model.pb YOLOV3.pb
+    python3 convert_weights_pb.py --class_names coco.names --data_format NHWC --weights_file yolov3-tiny.weights --tiny
+    mv frozen_darknet_yolov3_model.pb YOLOV3-Tiny.pb
 
-rm $CAFFE_DIR/VGG-19.*
+    $EXTENSIONS_DIR=$INSTALL_DIR/deployment_tools/model_optimizer/extensions
 
-caffe CaffeNet \
-    CaffeNet.caffemodel http://dl.caffe.berkeleyvision.org/bvlc_reference_caffenet.caffemodel \
-    CaffeNet.prototxt https://raw.githubusercontent.com/BVLC/caffe/master/models/bvlc_reference_caffenet/deploy.prototxt
-
-rm $CAFFE_DIR/CaffeNet.*
-
-caffe R-CNN \
-    R-CNN.caffemodel http://dl.caffe.berkeleyvision.org/bvlc_reference_rcnn_ilsvrc13.caffemodel \
-    R-CNN.prototxt https://raw.githubusercontent.com/BVLC/caffe/master/models/bvlc_reference_rcnn_ilsvrc13/deploy.prototxt
-
-rm $CAFFE_DIR/R-CNN.*
-
-onnx MobileNetV2 \
-    MobileNetV2.onnx https://s3.amazonaws.com/onnx-model-zoo/mobilenet/mobilenetv2-1.0/mobilenetv2-1.0.onnx
-
-rm $ONNX_DIR/MobileNetV2.*
-
-onnx ResNet-18V2 \
-    ResNet-18V2.onnx https://s3.amazonaws.com/onnx-model-zoo/resnet/resnet18v2/resnet18v2.onnx
-
-rm $ONNX_DIR/ResNet-18V2.*
-
-onnx ResNet-34V2 \
-    ResNet-34V2.onnx https://s3.amazonaws.com/onnx-model-zoo/resnet/resnet34v2/resnet34v2.onnx
-
-rm $ONNX_DIR/ResNet-34V2.*
-
-onnx ResNet-50V2 \
-    ResNet-50V2.onnx https://s3.amazonaws.com/onnx-model-zoo/resnet/resnet50v2/resnet50v2.onnx
-
-rm $ONNX_DIR/ResNet-50V2.*
-
-onnx ResNet-101V2 \
-    ResNet-101V2.onnx https://s3.amazonaws.com/onnx-model-zoo/resnet/resnet101v2/resnet101v2.onnx
-
-rm $ONNX_DIR/ResNet-101V2.*
-
-onnx ResNet-152V2 \
-    ResNet-152V2.onnx https://s3.amazonaws.com/onnx-model-zoo/resnet/resnet152v2/resnet152v2.onnx
-
-rm $ONNX_DIR/ResNet-152V2.*
-
-onnx SqueezeNet \
-    SqueezeNet.onnx https://s3.amazonaws.com/onnx-model-zoo/squeezenet/squeezenet1.1/squeezenet1.1.onnx
-
-rm $ONNX_DIR/SqueezeNet.*
-
-# DenseNet is a special case
-if [ ! -f "$ONNX_DIR/DenseNet-121.onnx" ];
-then
-    curl -o densenet121.tar.gz https://s3.amazonaws.com/download.onnx/models/opset_8/densenet121.tar.gz
-    tar -xzf densenet121.tar.gz
-    mv densenet121/model.onnx $ONNX_DIR/DenseNet-121.onnx
-    rm densenet121.tar.gz
-    rm -rf densenet121
-fi
-
-if [ ! -f "$MODEL_DIR/DenseNet-121.xml" ];
-then
-    python3 $INSTALL_DIR/deployment_tools/model_optimizer/mo.py \
-        --input_model $ONNX_DIR/DenseNet-121.onnx \
+    python3 $INSTALL_DIR/deployment_tools/model_optimizer/mo_tf.py \
+        --input_model YOLOV3.pb \
+        --tensorflow_use_custom_operations_config $EXTENSIONS_DIR/front/tf/yolo_v3.json
         --output_dir $MODEL_DIR \
-        --model_name DenseNet-121 \
+        --model_name YOLOV3 \
         --data_type $PRECISION
-    rm $ONNX_DIR/DenseNet-121.onnx
+
+    python3 $INSTALL_DIR/deployment_tools/model_optimizer/mo_tf.py \
+        --input_model YOLOV3-Tiny.pb \
+        --tensorflow_use_custom_operations_config $EXTENSIONS_DIR/front/tf/yolo_v3_tiny.json
+        --output_dir $MODEL_DIR \
+        --model_name YOLOV3 \
+        --data_type $PRECISION
+
+    cd ~
+    rm -rf $TF_DIR
+}
+
+partial()
+{
+    caffe AlexNet-conv1 \
+        AlexNet.caffemodel http://dl.caffe.berkeleyvision.org/bvlc_alexnet.caffemodel \
+        AlexNet.prototxt https://raw.githubusercontent.com/BVLC/caffe/master/models/bvlc_alexnet/deploy.prototxt \
+        conv1
+
+    caffe AlexNet-conv2 \
+        AlexNet.caffemodel http://dl.caffe.berkeleyvision.org/bvlc_alexnet.caffemodel \
+        AlexNet.prototxt https://raw.githubusercontent.com/BVLC/caffe/master/models/bvlc_alexnet/deploy.prototxt \
+        conv2
+
+    caffe AlexNet-conv3 \
+        AlexNet.caffemodel http://dl.caffe.berkeleyvision.org/bvlc_alexnet.caffemodel \
+        AlexNet.prototxt https://raw.githubusercontent.com/BVLC/caffe/master/models/bvlc_alexnet/deploy.prototxt \
+        conv3
+
+    caffe AlexNet-conv4 \
+        AlexNet.caffemodel http://dl.caffe.berkeleyvision.org/bvlc_alexnet.caffemodel \
+        AlexNet.prototxt https://raw.githubusercontent.com/BVLC/caffe/master/models/bvlc_alexnet/deploy.prototxt \
+        conv4
+
+    caffe AlexNet-conv5 \
+        AlexNet.caffemodel http://dl.caffe.berkeleyvision.org/bvlc_alexnet.caffemodel \
+        AlexNet.prototxt https://raw.githubusercontent.com/BVLC/caffe/master/models/bvlc_alexnet/deploy.prototxt \
+        conv5
+
+    caffe AlexNet-fc6 \
+        AlexNet.caffemodel http://dl.caffe.berkeleyvision.org/bvlc_alexnet.caffemodel \
+        AlexNet.prototxt https://raw.githubusercontent.com/BVLC/caffe/master/models/bvlc_alexnet/deploy.prototxt \
+        fc6
+
+    caffe AlexNet-fc7 \
+        AlexNet.caffemodel http://dl.caffe.berkeleyvision.org/bvlc_alexnet.caffemodel \
+        AlexNet.prototxt https://raw.githubusercontent.com/BVLC/caffe/master/models/bvlc_alexnet/deploy.prototxt \
+        fc7
+
+    caffe AlexNet-fc8 \
+        AlexNet.caffemodel http://dl.caffe.berkeleyvision.org/bvlc_alexnet.caffemodel \
+        AlexNet.prototxt https://raw.githubusercontent.com/BVLC/caffe/master/models/bvlc_alexnet/deploy.prototxt \
+        fc8
+
+    rm -f $CAFFE_DIR/AlexNet.*
+
+    caffe GoogleNet-inception_3b_3x3_reduce \
+        GoogleNet.caffemodel http://dl.caffe.berkeleyvision.org/bvlc_googlenet.caffemodel \
+        GoogleNet.prototxt https://raw.githubusercontent.com/BVLC/caffe/master/models/bvlc_googlenet/deploy.prototxt \
+        inception_3b/3x3_reduce
+
+    caffe GoogleNet-inception_4b_3x3_reduce \
+        GoogleNet.caffemodel http://dl.caffe.berkeleyvision.org/bvlc_googlenet.caffemodel \
+        GoogleNet.prototxt https://raw.githubusercontent.com/BVLC/caffe/master/models/bvlc_googlenet/deploy.prototxt \
+        inception_4b/3x3_reduce
+
+    caffe GoogleNet-inception_4c_5x5 \
+        GoogleNet.caffemodel http://dl.caffe.berkeleyvision.org/bvlc_googlenet.caffemodel \
+        GoogleNet.prototxt https://raw.githubusercontent.com/BVLC/caffe/master/models/bvlc_googlenet/deploy.prototxt \
+        inception_4c/5x5
+
+    caffe GoogleNet-inception_4e_5x5_reduce \
+        GoogleNet.caffemodel http://dl.caffe.berkeleyvision.org/bvlc_googlenet.caffemodel \
+        GoogleNet.prototxt https://raw.githubusercontent.com/BVLC/caffe/master/models/bvlc_googlenet/deploy.prototxt \
+        inception_4e/5x5_reduce
+
+    caffe GoogleNet-inception_5b_pool_proj \
+        GoogleNet.caffemodel http://dl.caffe.berkeleyvision.org/bvlc_googlenet.caffemodel \
+        GoogleNet.prototxt https://raw.githubusercontent.com/BVLC/caffe/master/models/bvlc_googlenet/deploy.prototxt \
+        inception_5b/pool_proj
+
+    caffe GoogleNet-loss3_classifier \
+        GoogleNet.caffemodel http://dl.caffe.berkeleyvision.org/bvlc_googlenet.caffemodel \
+        GoogleNet.prototxt https://raw.githubusercontent.com/BVLC/caffe/master/models/bvlc_googlenet/deploy.prototxt \
+        loss3/classifier
+
+    rm -f $CAFFE_DIR/GoogleNet.*
+
+    caffe VGG-16-conv2_1 \
+        VGG-16.caffemodel http://www.robots.ox.ac.uk/~vgg/software/very_deep/caffe/VGG_ILSVRC_16_layers.caffemodel \
+        VGG-16.prototxt https://gist.githubusercontent.com/ksimonyan/211839e770f7b538e2d8/raw/ded9363bd93ec0c770134f4e387d8aaaaa2407ce/VGG_ILSVRC_16_layers_deploy.prototxt \
+        conv2_1
+
+    caffe VGG-16-conv3_1 \
+        VGG-16.caffemodel http://www.robots.ox.ac.uk/~vgg/software/very_deep/caffe/VGG_ILSVRC_16_layers.caffemodel \
+        VGG-16.prototxt https://gist.githubusercontent.com/ksimonyan/211839e770f7b538e2d8/raw/ded9363bd93ec0c770134f4e387d8aaaaa2407ce/VGG_ILSVRC_16_layers_deploy.prototxt \
+        conv3_1
+
+    caffe VGG-16-conv4_1 \
+        VGG-16.caffemodel http://www.robots.ox.ac.uk/~vgg/software/very_deep/caffe/VGG_ILSVRC_16_layers.caffemodel \
+        VGG-16.prototxt https://gist.githubusercontent.com/ksimonyan/211839e770f7b538e2d8/raw/ded9363bd93ec0c770134f4e387d8aaaaa2407ce/VGG_ILSVRC_16_layers_deploy.prototxt \
+        conv4_1
+
+    caffe VGG-16-conv4_3 \
+        VGG-16.caffemodel http://www.robots.ox.ac.uk/~vgg/software/very_deep/caffe/VGG_ILSVRC_16_layers.caffemodel \
+        VGG-16.prototxt https://gist.githubusercontent.com/ksimonyan/211839e770f7b538e2d8/raw/ded9363bd93ec0c770134f4e387d8aaaaa2407ce/VGG_ILSVRC_16_layers_deploy.prototxt \
+        conv4_3
+
+    caffe VGG-16-conv5_3 \
+        VGG-16.caffemodel http://www.robots.ox.ac.uk/~vgg/software/very_deep/caffe/VGG_ILSVRC_16_layers.caffemodel \
+        VGG-16.prototxt https://gist.githubusercontent.com/ksimonyan/211839e770f7b538e2d8/raw/ded9363bd93ec0c770134f4e387d8aaaaa2407ce/VGG_ILSVRC_16_layers_deploy.prototxt \
+        conv5_3
+
+    caffe VGG-16-fc6 \
+        VGG-16.caffemodel http://www.robots.ox.ac.uk/~vgg/software/very_deep/caffe/VGG_ILSVRC_16_layers.caffemodel \
+        VGG-16.prototxt https://gist.githubusercontent.com/ksimonyan/211839e770f7b538e2d8/raw/ded9363bd93ec0c770134f4e387d8aaaaa2407ce/VGG_ILSVRC_16_layers_deploy.prototxt \
+        fc6
+
+    caffe VGG-16-fc7 \
+        VGG-16.caffemodel http://www.robots.ox.ac.uk/~vgg/software/very_deep/caffe/VGG_ILSVRC_16_layers.caffemodel \
+        VGG-16.prototxt https://gist.githubusercontent.com/ksimonyan/211839e770f7b538e2d8/raw/ded9363bd93ec0c770134f4e387d8aaaaa2407ce/VGG_ILSVRC_16_layers_deploy.prototxt \
+        fc7
+
+    caffe VGG-16-fc8 \
+        VGG-16.caffemodel http://www.robots.ox.ac.uk/~vgg/software/very_deep/caffe/VGG_ILSVRC_16_layers.caffemodel \
+        VGG-16.prototxt https://gist.githubusercontent.com/ksimonyan/211839e770f7b538e2d8/raw/ded9363bd93ec0c770134f4e387d8aaaaa2407ce/VGG_ILSVRC_16_layers_deploy.prototxt \
+        fc8
+
+    rm -f $CAFFE_DIR/VGG-16.*
+}
+
+if [[ "$MODEL_TYPE" == 'PARTIAL' ]];
+then
+    partial
+else
+    main
 fi
 
 rm -rf $CAFFE_DIR
