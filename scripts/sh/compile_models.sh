@@ -37,8 +37,8 @@ caffe()
     if [ ! -f "$MODEL_DIR/$MODEL_NAME.xml" ];
     then
         python3 $INSTALL_DIR/deployment_tools/model_optimizer/mo.py \
-            --input_model $TEMP_DIR/$MODEL_NAME.caffemodel \
-            --input_proto $TEMP_DIR/$MODEL_NAME.prototxt \
+            --input_model $CAFFE_DIR/$MODEL_NAME.caffemodel \
+            --input_proto $CAFFE_DIR/$MODEL_NAME.prototxt \
             --output_dir $MODEL_DIR \
             --model_name $MODEL_NAME \
             --data_type $PRECISION \
@@ -60,7 +60,7 @@ onnx()
     if [ ! -f "$MODEL_DIR/$MODEL_NAME.xml" ];
     then
         python3 $INSTALL_DIR/deployment_tools/model_optimizer/mo.py \
-            --input_model $TEMP_DIR/$MODEL_NAME.onnx \
+            --input_model $ONNX_DIR/$MODEL_NAME.onnx \
             --output_dir $MODEL_DIR \
             --model_name $MODEL_NAME \
             --data_type $PRECISION \
