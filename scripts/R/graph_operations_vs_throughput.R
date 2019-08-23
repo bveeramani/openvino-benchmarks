@@ -31,8 +31,8 @@ ggplot(models[models$device == "CPU", ], aes(ops, throughput, colour=name)) +
   theme_minimal() +
 ggsave("./images/operations_vs_throughput_cpu.png", width=8, height=6)
 
-models = models[!grepl("_|fc|conv", models$name), ]
-ggplot(models[models$device == "MYRIAD", ], aes(ops, throughput, colour=name)) +
+complete = models[!grepl("_|fc|conv", models$name), ]
+ggplot(complete[complete$device == "MYRIAD", ], aes(ops, throughput, colour=name)) +
   geom_point() +
   ggtitle("# of Operations vs Throughput") +
   xlab("# of Operations") +
@@ -40,10 +40,19 @@ ggplot(models[models$device == "MYRIAD", ], aes(ops, throughput, colour=name)) +
   theme_minimal() +
 ggsave("./images/operations_vs_throughput_myriad2.png", width=8, height=6)
 
-ggplot(models[models$device == "CPU", ], aes(ops, throughput, colour=name)) +
+ggplot(complete[complete$device == "CPU", ], aes(ops, throughput, colour=name)) +
   geom_point() +
   ggtitle("# of Operations vs Throughput") +
   xlab("# of Operations") +
   ylab("Throughput (fps)") +
   theme_minimal() +
 ggsave("./images/operations_vs_throughput_cpu2.png", width=8, height=6)
+
+partial = models[grepl("_|fc|conv", models$name), ]
+ggplot(partial[partial$device == "MYRIAD", ], aes(ops, throughput, colour=name)) +
+  geom_point() +
+  ggtitle("# of Operations vs Throughput") +
+  xlab("# of Operations") +
+  ylab("Throughput (fps)") +
+  theme_minimal() +
+ggsave("./images/operations_vs_throughput_myriad3.png", width=8, height=6)
