@@ -172,6 +172,10 @@ main()
         rm -f $ONNX_DIR/DenseNet-121.onnx
     fi
 
+    if [ -f "$MODEL_DIR/YOLOV3.xml" ] && [ -f "$MODEL_DIR/YOLOV3-Tiny.xml" ];
+    then
+        return 0
+    fi
     # YOLO-family models
     git clone https://github.com/mystic123/tensorflow-yolo-v3.git $TF_DIR
     git -C $TF_DIR checkout ed60b90
@@ -181,7 +185,7 @@ main()
     python3 $TF_DIR/convert_weights_pb.py --class_names $TF_DIR/coco.names \
         --data_format NHWC --weights_file $TF_DIR/yolov3.weights
     mv frozen_darknet_yolov3_model.pb $TF_DIR/YOLOV3.pb
-    python3 $TF_DIRconvert_weights_pb.py --class_names $TF_DIR/coco.names \
+    python3 $TF_DIR/convert_weights_pb.py --class_names $TF_DIR/coco.names \
         --data_format NHWC --weights_file $TF_DIR/yolov3-tiny.weights --tiny
     mv frozen_darknet_yolov3_model.pb $TF_DIR/YOLOV3-Tiny.pb
 
