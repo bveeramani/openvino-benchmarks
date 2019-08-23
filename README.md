@@ -45,24 +45,30 @@ optional arguments:
                         written to.
 ```
 
-## Experiments
+## Model Compiling tool
+```
+usage: compile_models.sh <DATA_TYPE {FP16, FP32}> [PARTIAL]
 
-#### Windows
-```
-usage: vary_api.bat {CPU,MYRIAD}
-usage: vary_batch_size.bat {CPU,MYRIAD}
-usage: vary_num_infer_requests.bat {CPU,MYRIAD}
-```
+Compile models used in the experiments.
 
-#### Linux
+positional arguments:
+  DATA_TYPE             Required. Either FP16 or FP32.
+  PARTIAL               Optional. Include this argument to compile the partial
+                        models instead of the complete models.
 ```
-usage: vary_api.sh {CPU,MYRIAD}
-usage: vary_batch_size.sh {CPU,MYRIAD}
-usage: vary_num_infer_requests.sh {CPU,MYRIAD}
+### Examples
+```
+$ ./scripts/sh/compile_models.sh FP32
+$ ./scripts/sh/compile_models.sh FP16 PARTIAL
 ```
 
 ## Model Sources
-Pre-converted models can be downloaded from [here](https://drive.google.com/drive/folders/1s-K0dAIsJ9OoWfjkasG-wQHd-wpCwja7?usp=sharing).
+Pre-compiled Intermediate Representation models are listed below. Note that the
+generated binaries may be incompatible on some systems. You can manually compile
+models for your device by using the `scripts/sh/compile_model.sh` tool.
+
+### Complete Models
+Pre-compiled models can be downloaded from [here](https://drive.google.com/drive/folders/1s-K0dAIsJ9OoWfjkasG-wQHd-wpCwja7?usp=sharing).
 
 | Name         | Source                                                                        |
 |--------------|-------------------------------------------------------------------------------|
@@ -85,7 +91,8 @@ Pre-converted models can be downloaded from [here](https://drive.google.com/driv
 
 **AlexNet is included as a reference model in the `models/` directory.*
 
-Additionally, you can download pre-converted **partial** models from [here](https://drive.google.com/drive/folders/1X7xzMMWTxvVHcnbPB1UisB-ef2k-tJQV?usp=sharing).
+### Partial Models
+Additionally, you can download pre-compiled **partial** models from [here](https://drive.google.com/drive/folders/1X7xzMMWTxvVHcnbPB1UisB-ef2k-tJQV?usp=sharing).
 
 | Name                              | Output Layer Name       |
 |-----------------------------------|-------------------------|
@@ -111,6 +118,14 @@ Additionally, you can download pre-converted **partial** models from [here](http
 | VGG-16-fc6                        | fc6                     |
 | VGG-16-fc7                        | fc7                     |
 | VGG-16-fc8                        | fc8                     |
+
+### Model Optimizer Environment
+* **System Type:** x64-based PC
+* **OS:** Windows 10 Pro 10.0.17134 Build 17134
+* **Processor:** Intel(R) Core(TM) i7-7660U CPU, 2 Core(s)
+* **Disk:** Local SSD
+* **Model Optimizer Version:** 2019.1.1-83-g28dfbfd
+* **Creation Date:** August 2019
 
 ## Known Issues
 * A Neural Compute Stick 2 cannot run YOLOV3 with a batch size of 16.

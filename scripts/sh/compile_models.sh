@@ -15,9 +15,14 @@ then
     exit 9
 fi
 
+rm -rf $CAFFE_DIR
+rm -rf $ONNX_DIR
+rm -rf $TF_DIR
+
 mkdir -p $CAFFE_DIR
 mkdir -p $ONNX_DIR
 mkdir -p $TF_DIR
+
 mkdir -p $MODEL_DIR
 
 caffe()
@@ -51,7 +56,7 @@ caffe()
         --output_dir $MODEL_DIR \
         --model_name $MODEL_NAME \
         --data_type $PRECISION \
-        `if [ -z "$OUTPUT_LAYER_NAME" ]; then echo "--output $OUTPUT_LAYER_NAME"; fi`
+        `if [ $# -eq 6 ]; then echo "--output $OUTPUT_LAYER_NAME"; fi`
 }
 
 onnx()
@@ -77,7 +82,7 @@ onnx()
         --output_dir $MODEL_DIR \
         --model_name $MODEL_NAME \
         --data_type $PRECISION \
-        `if [ -z "$OUTPUT_LAYER_NAME" ]; then echo "--output $OUTPUT_LAYER_NAME"; fi`
+        `if [ $# -eq 6 ]; then echo "--output $OUTPUT_LAYER_NAME"; fi`
 }
 
 main()
@@ -206,8 +211,6 @@ main()
         --model_name YOLOV3-Tiny \
         --batch 1 \
         --data_type $PRECISION
-
-    rm -rf $TF_DIR
 }
 
 partial()
@@ -336,5 +339,6 @@ else
     main
 fi
 
+rm -rf $TF_DIR
 rm -rf $CAFFE_DIR
 rm -rf $ONNX_DIR
