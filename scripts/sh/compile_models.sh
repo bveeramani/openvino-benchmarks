@@ -2,8 +2,8 @@
 PROJECT_DIR=$(dirname "$0")/../..
 PRECISION=$1
 
-CAFFE_DIR=$PROJECT_DIR/models/caffe
-ONNX_DIR=$PROJECT_DIR/models/onnx
+CAFFE_DIR=/tmp/caffe
+ONNX_DIR=/tmp/onnx
 INSTALL_DIR=/opt/intel/openvino
 MODEL_DIR=$PROJECT_DIR/models/$(echo "$PRECISION" | tr '[:upper:]' '[:lower:]')
 
@@ -26,6 +26,12 @@ caffe()
     PROTOTXT_URL=$5
     OUTPUT_LAYER_NAME=$6
 
+    if [ -f "$MODEL_DIR/$MODEL_NAME.xml" ];
+    then
+        echo "$MODEL_DIR/$MODEL_NAME has already been compiled."
+        exit 0
+    fi
+
     if [ ! -f "$CAFFE_DIR/$CAFFEMODEL_NAME" ];
     then
         curl -o $CAFFE_DIR/$CAFFEMODEL_NAME $CAFFEMODEL_URL
@@ -36,16 +42,13 @@ caffe()
         curl -o $CAFFE_DIR/$PROTOTXT_NAME $PROTOTXT_URL
     fi
 
-    if [ ! -f "$MODEL_DIR/$MODEL_NAME.xml" ];
-    then
-        python3 $INSTALL_DIR/deployment_tools/model_optimizer/mo.py \
-            --input_model $CAFFE_DIR/$CAFFEMODEL_NAME \
-            --input_proto $CAFFE_DIR/$PROTOTXT_NAME \
-            --output_dir $MODEL_DIR \
-            --model_name $MODEL_NAME \
-            --data_type $PRECISION \
-            `if [ -z "$OUTPUT_LAYER_NAME" ]; then echo "--output $OUTPUT_LAYER_NAME"; fi`
-    fi
+    python3 $INSTALL_DIR/deployment_tools/model_optimizer/mo.py \
+        --input_model $CAFFE_DIR/$CAFFEMODEL_NAME \
+        --input_proto $CAFFE_DIR/$PROTOTXT_NAME \
+        --output_dir $MODEL_DIR \
+        --model_name $MODEL_NAME \
+        --data_type $PRECISION \
+        `if [ -z "$OUTPUT_LAYER_NAME" ]; then echo "--output $OUTPUT_LAYER_NAME"; fi`
 }
 
 onnx()
@@ -55,86 +58,28 @@ onnx()
     ONNX_URL=$3
     OUTPUT_LAYER_NAME=$4
 
+    if [ -f "$MODEL_DIR/$MODEL_NAME.xml" ];
+    then
+        echo "$MODEL_DIR/$MODEL_NAME has already been compiled."
+        exit 0
+    fi
+
     if [ ! -f "$ONNX_DIR/$ONNX_NAME" ];
     then
         curl -o $ONNX_DIR/$ONNX_NAME $ONNX_URL
     fi
 
-    if [ ! -f "$MODEL_DIR/$MODEL_NAME.xml" ];
-    then
-        python3 $INSTALL_DIR/deployment_tools/model_optimizer/mo.py \
-            --input_model $ONNX_DIR/$ONNX_NAME \
-            --output_dir $MODEL_DIR \
-            --model_name $MODEL_NAME \
-            --data_type $PRECISION \
-            `if [ -z "$OUTPUT_LAYER_NAME" ]; then echo "--output $OUTPUT_LAYER_NAME"; fi`
-    fi
+    python3 $INSTALL_DIR/deployment_tools/model_optimizer/mo.py \
+        --input_model $ONNX_DIR/$ONNX_NAME \
+        --output_dir $MODEL_DIR \
+        --model_name $MODEL_NAME \
+        --data_type $PRECISION \
+        `if [ -z "$OUTPUT_LAYER_NAME" ]; then echo "--output $OUTPUT_LAYER_NAME"; fi`
 }
-
 
 caffe AlexNet \
     AlexNet.caffemodel http://dl.caffe.berkeleyvision.org/bvlc_alexnet.caffemodel \
     AlexNet.prototxt https://raw.githubusercontent.com/BVLC/caffe/master/models/bvlc_alexnet/deploy.prototxt
-
-caffe GoogleNet \
-    GoogleNet.caffemodel http://dl.caffe.berkeleyvision.org/bvlc_googlenet.caffemodel \
-    GoogleNet.prototxt https://raw.githubusercontent.com/BVLC/caffe/master/models/bvlc_googlenet/deploy.prototxt
-
-caffe VGG-16 \
-    VGG-16.caffemodel http://www.robots.ox.ac.uk/~vgg/software/very_deep/caffe/VGG_ILSVRC_16_layers.caffemodel \
-    VGG-16.prototxt https://gist.githubusercontent.com/ksimonyan/211839e770f7b538e2d8/raw/ded9363bd93ec0c770134f4e387d8aaaaa2407ce/VGG_ILSVRC_16_layers_deploy.prototxt
-
-caffe VGG-19 \
-    VGG-19.caffemodel http://www.robots.ox.ac.uk/~vgg/software/very_deep/caffe/VGG_ILSVRC_19_layers.caffemodel \
-    VGG-16.prototxt https://gist.githubusercontent.com/ksimonyan/3785162f95cd2d5fee77/raw/f43eeefc869d646b449aa6ce66f87bf987a1c9b5/VGG_ILSVRC_19_layers_deploy.prototxt
-
-caffe CaffeNet \
-    CaffeNet.caffemodel http://dl.caffe.berkeleyvision.org/bvlc_reference_caffenet.caffemodel \
-    CaffeNet.prototxt https://raw.githubusercontent.com/BVLC/caffe/master/models/bvlc_reference_caffenet/deploy.prototxt
-
-caffe R-CNN \
-    R-CNN.caffemodel http://dl.caffe.berkeleyvision.org/bvlc_reference_rcnn_ilsvrc13.caffemodel \
-    R-CNN.prototxt https://raw.githubusercontent.com/BVLC/caffe/master/models/bvlc_reference_rcnn_ilsvrc13/deploy.prototxt
-
-onnx MobileNetV2 \
-    MobileNetV2.onnx https://s3.amazonaws.com/onnx-model-zoo/mobilenet/mobilenetv2-1.0/mobilenetv2-1.0.onnx
-
-onnx ResNet-18V2 \
-    ResNet-18V2.onnx https://s3.amazonaws.com/onnx-model-zoo/resnet/resnet18v2/resnet18v2.onnx
-
-onnx ResNet-34V2 \
-    ResNet-34V2.onnx https://s3.amazonaws.com/onnx-model-zoo/resnet/resnet34v2/resnet34v2.onnx
-
-onnx ResNet-50V2 \
-    ResNet-50V2.onnx https://s3.amazonaws.com/onnx-model-zoo/resnet/resnet50v2/resnet50v2.onnx
-
-onnx ResNet-101V2 \
-    ResNet-101V2.onnx https://s3.amazonaws.com/onnx-model-zoo/resnet/resnet101v2/resnet101v2.onnx
-
-onnx ResNet-152V2 \
-    ResNet-152V2.onnx https://s3.amazonaws.com/onnx-model-zoo/resnet/resnet152v2/resnet152v2.onnx
-
-onnx SqueezeNet \
-    SqueezeNet.onnx https://s3.amazonaws.com/onnx-model-zoo/squeezenet/squeezenet1.1/squeezenet1.1.onnx
-
-# DenseNet is a special case
-if [ ! -f "$ONNX_DIR/DenseNet-121.onnx" ];
-then
-    curl -o densenet121.tar.gz https://s3.amazonaws.com/download.onnx/models/opset_8/densenet121.tar.gz
-    tar -xzf densenet121.tar.gz
-    mv densenet121/model.onnx $ONNX_DIR/DenseNet-121.onnx
-    rm densenet121.tar.gz
-    rm -rf densenet121
-fi
-
-if [ ! -f "$MODEL_DIR/DenseNet-121.xml" ];
-then
-    python3 $INSTALL_DIR/deployment_tools/model_optimizer/mo.py \
-        --input_model $ONNX_DIR/DenseNet-121.onnx \
-        --output_dir $MODEL_DIR \
-        --model_name DenseNet-121 \
-        --data_type $PRECISION
-fi
 
 caffe AlexNet-conv1 \
     AlexNet.caffemodel http://dl.caffe.berkeleyvision.org/bvlc_alexnet.caffemodel \
@@ -176,6 +121,12 @@ caffe AlexNet-fc8 \
     AlexNet.prototxt https://raw.githubusercontent.com/BVLC/caffe/master/models/bvlc_alexnet/deploy.prototxt \
     fc8
 
+rm $CAFFE_DIR/AlexNet.*
+
+caffe GoogleNet \
+    GoogleNet.caffemodel http://dl.caffe.berkeleyvision.org/bvlc_googlenet.caffemodel \
+    GoogleNet.prototxt https://raw.githubusercontent.com/BVLC/caffe/master/models/bvlc_googlenet/deploy.prototxt
+
 caffe GoogleNet-inception_3b_3x3_reduce \
     GoogleNet.caffemodel http://dl.caffe.berkeleyvision.org/bvlc_googlenet.caffemodel \
     GoogleNet.prototxt https://raw.githubusercontent.com/BVLC/caffe/master/models/bvlc_googlenet/deploy.prototxt \
@@ -205,6 +156,12 @@ caffe GoogleNet-loss3_classifier \
     GoogleNet.caffemodel http://dl.caffe.berkeleyvision.org/bvlc_googlenet.caffemodel \
     GoogleNet.prototxt https://raw.githubusercontent.com/BVLC/caffe/master/models/bvlc_googlenet/deploy.prototxt \
     loss3/classifier
+
+rm $CAFFE_DIR/GoogleNet.*
+
+caffe VGG-16 \
+    VGG-16.caffemodel http://www.robots.ox.ac.uk/~vgg/software/very_deep/caffe/VGG_ILSVRC_16_layers.caffemodel \
+    VGG-16.prototxt https://gist.githubusercontent.com/ksimonyan/211839e770f7b538e2d8/raw/ded9363bd93ec0c770134f4e387d8aaaaa2407ce/VGG_ILSVRC_16_layers_deploy.prototxt
 
 caffe VGG-16-conv2_1 \
     VGG-16.caffemodel http://www.robots.ox.ac.uk/~vgg/software/very_deep/caffe/VGG_ILSVRC_16_layers.caffemodel \
@@ -245,3 +202,81 @@ caffe VGG-16-fc8 \
     VGG-16.caffemodel http://www.robots.ox.ac.uk/~vgg/software/very_deep/caffe/VGG_ILSVRC_16_layers.caffemodel \
     VGG-16.prototxt https://gist.githubusercontent.com/ksimonyan/211839e770f7b538e2d8/raw/ded9363bd93ec0c770134f4e387d8aaaaa2407ce/VGG_ILSVRC_16_layers_deploy.prototxt \
     fc8
+
+rm $CAFFE_DIR/VGG-16.*
+
+caffe VGG-19 \
+    VGG-19.caffemodel http://www.robots.ox.ac.uk/~vgg/software/very_deep/caffe/VGG_ILSVRC_19_layers.caffemodel \
+    VGG-16.prototxt https://gist.githubusercontent.com/ksimonyan/3785162f95cd2d5fee77/raw/f43eeefc869d646b449aa6ce66f87bf987a1c9b5/VGG_ILSVRC_19_layers_deploy.prototxt
+
+rm $CAFFE_DIR/VGG-19.*
+
+caffe CaffeNet \
+    CaffeNet.caffemodel http://dl.caffe.berkeleyvision.org/bvlc_reference_caffenet.caffemodel \
+    CaffeNet.prototxt https://raw.githubusercontent.com/BVLC/caffe/master/models/bvlc_reference_caffenet/deploy.prototxt
+
+rm $CAFFE_DIR/CaffeNet.*
+
+caffe R-CNN \
+    R-CNN.caffemodel http://dl.caffe.berkeleyvision.org/bvlc_reference_rcnn_ilsvrc13.caffemodel \
+    R-CNN.prototxt https://raw.githubusercontent.com/BVLC/caffe/master/models/bvlc_reference_rcnn_ilsvrc13/deploy.prototxt
+
+rm $CAFFE_DIR/R-CNN.*
+
+onnx MobileNetV2 \
+    MobileNetV2.onnx https://s3.amazonaws.com/onnx-model-zoo/mobilenet/mobilenetv2-1.0/mobilenetv2-1.0.onnx
+
+rm $ONNX_DIR/MobileNetV2.*
+
+onnx ResNet-18V2 \
+    ResNet-18V2.onnx https://s3.amazonaws.com/onnx-model-zoo/resnet/resnet18v2/resnet18v2.onnx
+
+rm $ONNX_DIR/ResNet-18V2.*
+
+onnx ResNet-34V2 \
+    ResNet-34V2.onnx https://s3.amazonaws.com/onnx-model-zoo/resnet/resnet34v2/resnet34v2.onnx
+
+rm $ONNX_DIR/ResNet-34V2.*
+
+onnx ResNet-50V2 \
+    ResNet-50V2.onnx https://s3.amazonaws.com/onnx-model-zoo/resnet/resnet50v2/resnet50v2.onnx
+
+rm $ONNX_DIR/ResNet-50V2.*
+
+onnx ResNet-101V2 \
+    ResNet-101V2.onnx https://s3.amazonaws.com/onnx-model-zoo/resnet/resnet101v2/resnet101v2.onnx
+
+rm $ONNX_DIR/ResNet-101V2.*
+
+onnx ResNet-152V2 \
+    ResNet-152V2.onnx https://s3.amazonaws.com/onnx-model-zoo/resnet/resnet152v2/resnet152v2.onnx
+
+rm $ONNX_DIR/ResNet-152V2.*
+
+onnx SqueezeNet \
+    SqueezeNet.onnx https://s3.amazonaws.com/onnx-model-zoo/squeezenet/squeezenet1.1/squeezenet1.1.onnx
+
+rm $ONNX_DIR/SqueezeNet.*
+
+# DenseNet is a special case
+if [ ! -f "$ONNX_DIR/DenseNet-121.onnx" ];
+then
+    curl -o densenet121.tar.gz https://s3.amazonaws.com/download.onnx/models/opset_8/densenet121.tar.gz
+    tar -xzf densenet121.tar.gz
+    mv densenet121/model.onnx $ONNX_DIR/DenseNet-121.onnx
+    rm densenet121.tar.gz
+    rm -rf densenet121
+fi
+
+if [ ! -f "$MODEL_DIR/DenseNet-121.xml" ];
+then
+    python3 $INSTALL_DIR/deployment_tools/model_optimizer/mo.py \
+        --input_model $ONNX_DIR/DenseNet-121.onnx \
+        --output_dir $MODEL_DIR \
+        --model_name DenseNet-121 \
+        --data_type $PRECISION
+    rm $ONNX_DIR/DenseNet-121.onnx
+fi
+
+rm -rf $CAFFE_DIR
+rm -rf $ONNX_DIR
