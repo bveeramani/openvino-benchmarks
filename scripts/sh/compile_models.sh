@@ -173,6 +173,7 @@ main()
         rm -f $ONNX_DIR/DenseNet-121.onnx
     fi
 
+    ORIGINAL_DIR=$PWD
     # YOLO family models are a special case
     git clone https://github.com/mystic123/tensorflow-yolo-v3.git $TF_DIR
     cd $TF_DIR
@@ -185,24 +186,26 @@ main()
     python3 convert_weights_pb.py --class_names coco.names --data_format NHWC --weights_file yolov3-tiny.weights --tiny
     mv frozen_darknet_yolov3_model.pb YOLOV3-Tiny.pb
 
-    $EXTENSIONS_DIR=$INSTALL_DIR/deployment_tools/model_optimizer/extensions
+    EXTENSIONS_DIR=$INSTALL_DIR/deployment_tools/model_optimizer/extensions
 
     python3 $INSTALL_DIR/deployment_tools/model_optimizer/mo_tf.py \
         --input_model YOLOV3.pb \
-        --tensorflow_use_custom_operations_config $EXTENSIONS_DIR/front/tf/yolo_v3.json
+        --tensorflow_use_custom_operations_config $EXTENSIONS_DIR/front/tf/yolo_v3.json \
         --output_dir $MODEL_DIR \
         --model_name YOLOV3 \
+        --batch 1 \
         --data_type $PRECISION
 
     python3 $INSTALL_DIR/deployment_tools/model_optimizer/mo_tf.py \
         --input_model YOLOV3-Tiny.pb \
-        --tensorflow_use_custom_operations_config $EXTENSIONS_DIR/front/tf/yolo_v3_tiny.json
+        --tensorflow_use_custom_operations_config $EXTENSIONS_DIR/front/tf/yolo_v3_tiny.json \
         --output_dir $MODEL_DIR \
-        --model_name YOLOV3 \
+        --model_name YOLOV3-Tiny \
+        --batch 1 \
         --data_type $PRECISION
 
-    cd ~
-    rm -rf $TF_DIR
+    cd $ORIGINAL_DIR
+    # rm -rf $TF_DIR
 }
 
 partial()
